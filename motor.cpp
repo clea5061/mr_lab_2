@@ -1,6 +1,7 @@
 /**
  * Author(s): Evan Cleary, Gabriel Bowerson, Nathan Sarrault
  * Date: 4/17/2018
+ * Amended: 4/23/2018
  * Class: CE-442
  * Assignment: Lab 2
  *
@@ -50,8 +51,8 @@ Motor::Motor(char d_pin, char s_pin, char forward, float scaleFactor) {
  * Sets the motor to the drive direction and speed
  */
 void Motor::update_motor(){
-  analogWrite(m_drive_pin, 0);
-  delay(25);
+//  analogWrite(m_drive_pin, 0);
+//  delay(25);
   digitalWrite(m_direction_pin, m_direction);
   analogWrite(m_drive_pin, m_drive_speed);
 }
@@ -82,8 +83,22 @@ void Motor::backward(char speed) {
  * @param speed Percent speed to run the motor at
  */
 void Motor::go(char speed) {
+  m_drive_percent = speed;
   m_drive_speed = map(speed*m_scale_factor, 0, 100, 0, 255);
   update_motor();
+}
+/**
+ * Returns the scaled drive speed of the motor
+ */
+int Motor::get_drive_speed() {
+  return m_drive_speed;
+}
+
+/**
+ * Returns the drive speed as a percentage.
+ */
+int Motor::get_drive_percent() {
+  return m_drive_percent;
 }
 
 /**

@@ -1,6 +1,7 @@
 /**
  * Author(s): Evan Cleary, Gabriel Bowerson, Nathan Sarrault
  * Date: 4/17/2018
+ * Amended: 4/23/2018
  * Class: CE-442
  * Assignment: Lab 2
  *
@@ -22,10 +23,13 @@ class Motor {
     void forward(char speed);
     void backward(char speed);
     void stop();
+    int get_drive_speed();
+    int get_drive_percent();
   private:
     char m_direction_pin;
     char m_drive_pin;
     char m_drive_speed;
+    char m_drive_percent;
     char m_forward;
     char m_direction;
     float m_scale_factor;
