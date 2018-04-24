@@ -5,13 +5,12 @@
 
 /**
  * Author(s): Evan Cleary, Gabriel Bowerson, Nathan Sarrault
- * Date: 4/17/2018
+ * Date: 4/23/2018
  * Class: CE-442
- * Assignment: Lab 2
+ * Assignment: Lab 3
  *
- * Basic controls of a differential drive robot.
- * Has functions that support moving forward, turning left,
- * going in a square, and navigating a figure 8.
+ * Implements more advanced control of a differential drive robot
+ * Allows for encoders and ultrasonic sensor
  *
  */
 #define START_BUTTON_PIN 11
