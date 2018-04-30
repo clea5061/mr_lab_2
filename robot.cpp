@@ -10,7 +10,7 @@
 #include "robot.h"
 #include <Arduino.h>
 
-#define DEGREES_PER_SECOND 75.6f
+#define DEGREES_PER_SECOND 1427
 
 Robot::Robot(Motor* leftMotor, Motor* rightMotor, I2CEncoder* leftEncoder, I2CEncoder* rightEncoder, NewPing* ultraSonic) {
   m_leftMotor = leftMotor;
@@ -26,20 +26,24 @@ Robot::Robot(Motor* leftMotor, Motor* rightMotor, I2CEncoder* leftEncoder, I2CEn
  * @param degrees, How many degrees are we turning?
  */
 void Robot::turn_right(float degrees) {
-  int turnTime = (degrees/DEGREES_PER_SECOND)*1000;
-  int start = millis();
+  int traveled = 0, lT = 0, rT = 0;
   int last = millis();
-  m_leftMotor->forward(initialSpeed(12));
-  m_rightMotor->backward(initialSpeed(12));
-    while(millis()-start < turnTime) {
-    m_leftMotor->forward(calculatePowerLevel(12, m_leftMotor->get_drive_percent(), m_leftEncoder->getRawPosition(), millis()-last));
-    m_rightMotor->backward(calculatePowerLevel(12, m_rightMotor->get_drive_percent(), -1*m_rightEncoder->getRawPosition(), millis()-last));
+  m_leftEncoder->zero();
+  m_rightEncoder->zero();
+  m_leftMotor->forward(initialSpeed(12.0f));
+  m_rightMotor->backward(initialSpeed(12.0f));
+  while(rT < DEGREES_PER_SECOND/6) {
+    delay(10);
+    rT += abs(m_rightEncoder->getRawPosition());
+    m_leftMotor->forward(calculatePowerLevel(12.0f, m_leftMotor->get_drive_percent(), abs(m_leftEncoder->getRawPosition()), millis()-last));
+    m_rightMotor->backward(calculatePowerLevel(12.0f, m_rightMotor->get_drive_percent(), abs(m_rightEncoder->getRawPosition()), millis()-last));
+    last = millis();
     m_leftEncoder->zero();
     m_rightEncoder->zero();
-    last = millis();
+    traveled = rT;
   }
-  m_rightMotor->stop();
   m_leftMotor->stop();
+  m_rightMotor->stop();
 }
 
 /**
@@ -48,20 +52,24 @@ void Robot::turn_right(float degrees) {
  * @param degrees, How many degrees are we turning?
  */
 void Robot::turn_left(float degrees) {
-  int turnTime = (degrees/DEGREES_PER_SECOND)*1000;
-  int start = millis();
+  int traveled = 0, lT = 0, rT = 0;
   int last = millis();
-  m_leftMotor->backward(initialSpeed(12));
-  m_rightMotor->forward(initialSpeed(12));
-  while(millis()-start < turnTime) {
-    m_leftMotor->backward(calculatePowerLevel(12, m_leftMotor->get_drive_percent(), -1*m_leftEncoder->getRawPosition(), millis()-last));
-    m_rightMotor->forward(calculatePowerLevel(12, m_rightMotor->get_drive_percent(), m_rightEncoder->getRawPosition(), millis()-last));
+  m_leftEncoder->zero();
+  m_rightEncoder->zero();
+  m_leftMotor->backward(initialSpeed(12.0f));
+  m_rightMotor->forward(initialSpeed(12.0f));
+  while(rT < DEGREES_PER_SECOND/ 8 + 15) {
+    delay(10);
+    rT += abs(m_rightEncoder->getRawPosition());
+    m_leftMotor->backward(calculatePowerLevel(12.0f, m_leftMotor->get_drive_percent(), abs(m_leftEncoder->getRawPosition()), millis()-last));
+    m_rightMotor->forward(calculatePowerLevel(12.0f, m_rightMotor->get_drive_percent(), abs(m_rightEncoder->getRawPosition()), millis()-last));
+    last = millis();
     m_leftEncoder->zero();
     m_rightEncoder->zero();
-    last = millis();
+    traveled = rT;
   }
-  m_rightMotor->stop();
   m_leftMotor->stop();
+  m_rightMotor->stop();
 }
 
 /**
@@ -72,6 +80,9 @@ int Robot::calculatePowerLevel(float targetSpeed, int powerLevel, float realSpee
   float realSpeedTime = (realSpeed/timeDelta)*1000; // Multiply by 1000 to get ticks/second
   float revSec = realSpeedTime/627.2f;
   float linVel = revSec*4*PI;
+
+  Serial.print("RevSec: ");
+  Serial.println(revSec);
   if(linVel < targetSpeed) {
     powerLevel++;
   } else {
@@ -114,10 +125,10 @@ void Robot::forward(float speed, int distance) {
     }
     rightEnc = m_rightEncoder->getRawPosition();
     leftEnc = m_leftEncoder->getRawPosition();
-    Serial.print("Right: ");
-    Serial.println(rightEnc);
-    Serial.print("Left: ");
-    Serial.println(leftEnc);
+//    Serial.print("Right: ");
+//    Serial.println(rightEnc);
+//    Serial.print("Left: ");
+//    Serial.println(leftEnc);
     calcDistance += (((rightEnc+leftEnc)/2)/627.2)*4*PI;
     m_rightEncoder->zero();
     m_leftEncoder->zero();
@@ -144,6 +155,7 @@ void Robot::forward(float speed, int distance) {
  */
 bool Robot::collision() {
   int distance = m_ultraSonic->ping_in();
+  if(distance== 0) return false;
   return distance < 18;
 }
 

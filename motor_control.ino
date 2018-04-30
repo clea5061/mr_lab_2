@@ -20,6 +20,8 @@
 #define MOTOR_RIGHT_DIR_PIN 4
 #define MOTOR_RIGHT_DRIVE_PIN 5
 
+#define DEL 500
+
 #include "motor.h"
 #include "robot.h"
 char enabled = 0;
@@ -52,14 +54,21 @@ void loop() {
     return;
   }
 
-  first_robot.forward(12.0f, 48);
-  first_robot.turn_left(90);
-  first_robot.forward(12.0f, 48);
-  first_robot.turn_left(90);
-  first_robot.forward(12.0f, 48);
-  first_robot.turn_left(90);
-  first_robot.forward(12.0f, 48);
-  first_robot.turn_left(90);
+  first_robot.forward(12.0f, 1500);
+//  delay(DEL);
+//  first_robot.turn_left(90);
+//  delay(DEL);
+//  first_robot.forward(12.0f, 48);
+//  delay(DEL);
+//  first_robot.turn_left(90);
+//  delay(DEL);
+//  first_robot.forward(12.0f, 48);
+//  delay(DEL);
+//  first_robot.turn_left(90);
+//  delay(DEL);
+//  first_robot.forward(12.0f, 48);
+//  delay(DEL);
+//  first_robot.turn_left(90);
   enabled = 0;
 
  // power+= 10;
