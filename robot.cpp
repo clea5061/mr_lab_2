@@ -12,6 +12,7 @@
 #include <Arduino.h>
 
 #define PROP_VAL 5.0f
+#define DIST_KP  2.0f
 
 Robot::Robot(Motor* leftMotor, Motor* rightMotor, I2CEncoder* leftEncoder, I2CEncoder* rightEncoder, NewPing* ultraSonic, LightSensor* lightSensor) {
   m_leftMotor = leftMotor;
@@ -102,7 +103,7 @@ int Robot::initialSpeed(float speed) {
  * @param distance Distance for robot to travel in inches
  */
 void Robot::forward(float speed, int distance) {
-  forward(speed,distance, 1);
+  forward(speed, distance, 1);
 }
 
 /**
@@ -115,19 +116,14 @@ void Robot::forward(float speed, int distance) {
  */
 void Robot::forward(float speed, int distance, char collision_det) {
   int l_speed = Robot::initialSpeed(speed);
-  float finalDist = (distance/(4*PI))*627.2;
-  float error = 0;
+  float finalDist = (distance/(10.16f*PI))*627.2;
   int traveled = 0;
-  int rightEnc, leftEnc;
   LightCollision* lCol;
   while(traveled < finalDist || finalDist < 0) {
-    rightEnc = m_rightEncoder->getRawPosition();
-    leftEnc = m_leftEncoder->getRawPosition();
-    error = (leftEnc - rightEnc)/PROP_VAL;
-    m_rightEncoder->zero();
-    m_leftEncoder->zero();
-    lCol = light_wall();
+    traveled += drive(l_speed, 1);
+    
     if(collision_det) {
+      lCol = light_wall();
       if(lCol->left) {
         stop();
         turn_left(90);
@@ -136,12 +132,51 @@ void Robot::forward(float speed, int distance, char collision_det) {
         turn_right(90);
       }
     }
-    m_leftMotor->forward(l_speed);
-    m_rightMotor->forward(l_speed + error);
-    traveled += leftEnc;
     delay(100);
   }
   stop();
+}
+
+void Robot::forward_collision(float speed, int threshold) {
+  int l_speed = Robot::initialSpeed(speed);
+  while(!collision(threshold)) {
+    drive(l_speed, 1);
+    delay(50);
+  }
+  stop();
+}
+
+void Robot::backward(float speed, int distance) {
+  int l_speed = Robot::initialSpeed(speed);
+  float finalDist = (distance/(10.16f*PI))*627.2;
+  int traveled = 0;
+  while(traveled < finalDist || finalDist < 0) {
+    traveled += drive(l_speed, 0);
+    Serial.print("Traveled: ");
+    Serial.print(traveled);
+    Serial.print("/");
+    Serial.println(finalDist);
+    delay(100);
+  }
+  stop();
+}
+
+int Robot::drive(float speed, char dir) {
+    float error = 0;
+    int rightEnc, leftEnc;
+    rightEnc = abs(m_rightEncoder->getRawPosition());
+    leftEnc = abs(m_leftEncoder->getRawPosition());
+    error = (leftEnc - rightEnc)/PROP_VAL;
+    m_rightEncoder->zero();
+    m_leftEncoder->zero();
+    if(dir) {
+      m_leftMotor->forward(speed);
+      m_rightMotor->forward(speed + error);
+    } else {
+      m_leftMotor->backward(speed);
+      m_rightMotor->backward(speed + error);
+    }
+    return leftEnc;
 }
 
 /**
@@ -159,7 +194,7 @@ void Robot::line_follow(float speed) {
   LightCollision* lCol;
   float error = 0;
   while(1) {
-    if(collision()) {
+    if(collision(50)) {
       stop();
       continue;
     }
@@ -199,6 +234,27 @@ void Robot::forward_indeterminate(float speed) {
 }
 
 /**
+ * Makes the robot maintain a certain distance in CM from an object
+ */
+void Robot::maintain_distance(float distance) {
+  while(true) {
+    int ac_dist = m_ultraSonic->ping_cm();
+    Serial.println(ac_dist);
+    float error = ac_dist - distance;
+    if (ac_dist) {
+      if (error > 0) {
+        forward(12, error/DIST_KP, 0);
+      } else if (error < 0) {
+        backward(12, -1*error/DIST_KP);
+      }
+    } else {
+      forward_collision(12, distance);
+    }
+    delay(25);
+  }
+}
+
+/**
  * Stops the robot
  */
 void Robot::stop() {
@@ -219,9 +275,9 @@ LightCollision* Robot::light_wall() {
  * 
  * @returns whether the robot is about to collide with something
  */
-bool Robot::collision() {
-  int distance = m_ultraSonic->ping_in();
+bool Robot::collision(int threshold) {
+  int distance = m_ultraSonic->ping_cm();
   if(distance== 0) return false;
-  return distance < 18;
+  return distance < threshold;
 }
 

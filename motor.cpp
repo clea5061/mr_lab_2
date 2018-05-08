@@ -10,7 +10,7 @@
  *
  */
 #include "motor.h"
-#include "arduino.h"
+#include "Arduino.h"
 
 /**
  * Base Motor constructor that provides a active high forward and 1 scale factor

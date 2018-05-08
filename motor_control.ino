@@ -1,3 +1,10 @@
+#include <Dhcp.h>
+#include <EthernetServer.h>
+#include <EthernetClient.h>
+#include <EthernetUdp.h>
+#include <Dns.h>
+#include <Ethernet.h>
+
 
 /**
  * Author(s): Evan Cleary, Gabriel Bowerson, Nathan Sarrault
@@ -25,7 +32,7 @@ char enabled = 0;
 char dir = 0;
 
 Motor motorLeft(MOTOR_LEFT_DIR_PIN, MOTOR_LEFT_DRIVE_PIN, 1);
-Motor motorRight(MOTOR_RIGHT_DIR_PIN, MOTOR_RIGHT_DRIVE_PIN, 0, 1.0f);
+Motor motorRight(MOTOR_RIGHT_DIR_PIN, MOTOR_RIGHT_DRIVE_PIN, 0, 0.95f);
 NewPing ultraSonic(12, 13);
 I2CEncoder leftEncoder, rightEncoder;
 LightSensor ls(LIGHT_SENSOR_LEFT_PIN, LIGHT_SENSOR_CENTER_PIN, LIGHT_SENSOR_RIGHT_PIN);
@@ -54,6 +61,7 @@ void loop() {
     return;
   }
   if(!first) {
+    Serial.println("BLAH");
     ls.calibrate();
     first = 1;
     delay(1000);
@@ -63,7 +71,8 @@ void loop() {
   
   //collision = ls.check_collisions();
   //first_robot.forward_indeterminate(12.0f);
-  first_robot.line_follow(12.0f);
+  //first_robot.line_follow(12.0f);
+  first_robot.maintain_distance(25.0f);
   enabled = 0;
 }
 
