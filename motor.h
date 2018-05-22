@@ -11,20 +11,23 @@
  */
 #ifndef MOTOR_CNTRL_H
 #define MOTOR_CNTRL_H
+#include <I2CEncoder.h>
 
 /**
  * Class to control a PWM motor
  */
 class Motor {
   public:
-    Motor(char d_pin, char s_pin);
-    Motor(char d_pin, char s_pin, char forward);
-    Motor(char d_pin, char s_pin, char forward, float scaleFactor);
+    Motor(char d_pin, char s_pin, I2CEncoder* encoder);
+    Motor(char d_pin, char s_pin, I2CEncoder* encoder, char forward);
+    Motor(char d_pin, char s_pin, I2CEncoder* encoder, char forward, float scaleFactor);
+    void drive(char speed);
+    void stop();
     void forward(char speed);
     void backward(char speed);
-    void stop();
     int get_drive_speed();
     int get_drive_percent();
+    int get_actual_speed();
   private:
     char m_direction_pin;
     char m_drive_pin;
@@ -32,6 +35,7 @@ class Motor {
     char m_drive_percent;
     char m_forward;
     char m_direction;
+    I2CEncoder* m_encoder;
     float m_scale_factor;
     void update_motor();
     void go(char);

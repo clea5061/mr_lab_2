@@ -51,7 +51,7 @@ char LightSensor::threshold_check(int value, int cal_value) {
  */
 void LightSensor::calibrate() {
   unsigned long start = millis();
-  int poll_count = 0;
+  int poll_count = 0; 
   while(millis() - start < 500) {
     poll_count++;
     poll();
@@ -63,5 +63,11 @@ void LightSensor::calibrate() {
   m_black_cal.left /= poll_count;
   m_black_cal.center /= poll_count;
   m_black_cal.right /= poll_count;
+  Serial.print("L-cal: ");
+  Serial.print(m_black_cal.left);
+  Serial.print(" C-cal: ");
+  Serial.print(m_black_cal.center);
+  Serial.print(" R-cal: ");
+  Serial.println(m_black_cal.right);
 }
 

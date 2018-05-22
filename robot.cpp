@@ -117,6 +117,7 @@ void Robot::forward(float speed, int distance, char collision_det) {
   int l_speed = Robot::initialSpeed(speed);
   float finalDist = (distance/(4*PI))*627.2;
   float error = 0;
+  int last = 0;
   int traveled = 0;
   int rightEnc, leftEnc;
   LightCollision* lCol;
@@ -128,7 +129,10 @@ void Robot::forward(float speed, int distance, char collision_det) {
     m_leftEncoder->zero();
     lCol = light_wall();
     if(collision_det) {
-      if(lCol->left) {
+      if(collision()) {
+        stop();
+        turn_left(180);
+      } else if(lCol->left) {
         stop();
         turn_left(90);
       } else if(lCol->right) {
@@ -136,10 +140,12 @@ void Robot::forward(float speed, int distance, char collision_det) {
         turn_right(90);
       }
     }
-    m_leftMotor->forward(l_speed);
-    m_rightMotor->forward(l_speed + error);
-    traveled += leftEnc;
-    delay(100);
+    if(millis()-last >= 100) {
+      m_leftMotor->forward(l_speed);
+      m_rightMotor->forward(l_speed + error);
+      traveled += leftEnc;
+      last = millis();
+    }
   }
   stop();
 }
@@ -151,8 +157,9 @@ void Robot::forward(float speed, int distance, char collision_det) {
  * @param speed, Speed in inches/sec
  */
 void Robot::line_follow(float speed) {
-  float l_speed = initialSpeed(speed);
+  float l_speed = initialSpeed(speed); 
   float r_speed = l_speed;
+  float incr = 0.3;
   float r_scale = 1, l_scale = 1, e_scale = 1;
   int rightEnc, leftEnc;
   int track_dir = 0;
@@ -166,12 +173,12 @@ void Robot::line_follow(float speed) {
     lCol = m_lightSensor->check_collisions();
     if(lCol->left || lCol->right){
       if(lCol->left) {
-        l_scale = 0;
-        r_scale = 1.3;
+        l_scale /= 2;
+        r_scale += (1+incr-r_scale)/2;
       }
       if(lCol->right) {
-        l_scale = 1.3;
-        r_scale = 0;
+        l_scale += (1+incr-l_scale)/2;
+        r_scale /= 2;
       }
       e_scale = 0;
     } else if(lCol->center){

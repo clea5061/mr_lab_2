@@ -17,6 +17,7 @@
 #include "pinout.h"
 #include "motor.h"
 #include "robot.h"
+#include "robotv2.h"
 #include "light_sensor.h"
 
 #define DEL 500
@@ -24,12 +25,13 @@
 char enabled = 0;
 char dir = 0;
 
-Motor motorLeft(MOTOR_LEFT_DIR_PIN, MOTOR_LEFT_DRIVE_PIN, 1);
-Motor motorRight(MOTOR_RIGHT_DIR_PIN, MOTOR_RIGHT_DRIVE_PIN, 0, 1.0f);
-NewPing ultraSonic(12, 13);
 I2CEncoder leftEncoder, rightEncoder;
+Motor motorLeft(MOTOR_LEFT_DIR_PIN, MOTOR_LEFT_DRIVE_PIN, &leftEncoder, 0);
+Motor motorRight(MOTOR_RIGHT_DIR_PIN, MOTOR_RIGHT_DRIVE_PIN, &rightEncoder, 1, 1.0f);
+NewPing ultraSonic(12, 13);
 LightSensor ls(LIGHT_SENSOR_LEFT_PIN, LIGHT_SENSOR_CENTER_PIN, LIGHT_SENSOR_RIGHT_PIN);
-Robot first_robot(&motorLeft, &motorRight, &leftEncoder, &rightEncoder, &ultraSonic, &ls);
+Vision vision;
+Robot2 second_robot(&motorLeft, &motorRight);
 
 void setup() {
   // put your setup code here, to run once:
@@ -39,6 +41,7 @@ void setup() {
   rightEncoder.init(MOTOR_393_TORQUE_ROTATIONS, MOTOR_393_TIME_DELTA);
   leftEncoder.init(MOTOR_393_TORQUE_ROTATIONS, MOTOR_393_TIME_DELTA);
   leftEncoder.setReversed(true);
+  second_robot.enable_vision(&vision);
   //rightEncoder.setReversed(true);
   Serial.println("Initialized");
 }
@@ -57,13 +60,15 @@ void loop() {
     ls.calibrate();
     first = 1;
     delay(1000);
-    enabled =0;
+    enabled = 0;
     return;
   }
   
   //collision = ls.check_collisions();
   //first_robot.forward_indeterminate(12.0f);
-  first_robot.line_follow(12.0f);
+  second_robot.drive(12);
+
+  //first_robot.line_follow(12.0f);
   enabled = 0;
 }
 

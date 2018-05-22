@@ -18,7 +18,7 @@
  * @param d_pin Which pin controls the direction of the motor
  * @param s_pin Which pin controlls the speed of the motor
  */
-Motor::Motor(char d_pin, char s_pin): Motor(d_pin, s_pin, 1, 1){}
+Motor::Motor(char d_pin, char s_pin, I2CEncoder* encoder): Motor(d_pin, s_pin, encoder, 1, 1){}
 
 /**
  * Defines a motor with the given pins and forward direction with a 1 scale factor
@@ -27,7 +27,7 @@ Motor::Motor(char d_pin, char s_pin): Motor(d_pin, s_pin, 1, 1){}
  * @param s_pin Which pin controlls the speed of the motor
  * @param forward Which direction is forward, 1 or 0
  */
-Motor::Motor(char d_pin, char s_pin, char forward): Motor(d_pin, s_pin, forward, 1) {}
+Motor::Motor(char d_pin, char s_pin, I2CEncoder* encoder, char forward): Motor(d_pin, s_pin, encoder, forward, 1) {}
 
 /**
  * Defines a motor with the given pins, forward, and scale factor
@@ -37,12 +37,13 @@ Motor::Motor(char d_pin, char s_pin, char forward): Motor(d_pin, s_pin, forward,
  * @param forward Which direction is forward, 1 or 0
  * @param scaleFactor the multiplier between between 0 and 1 that is applied to motor speed
  */
-Motor::Motor(char d_pin, char s_pin, char forward, float scaleFactor) {
+Motor::Motor(char d_pin, char s_pin, I2CEncoder* encoder, char forward, float scaleFactor) {
   m_direction_pin = d_pin;
   m_drive_pin = s_pin;
   m_drive_speed = 0;
   m_forward = forward;
   m_scale_factor = scaleFactor;
+  m_encoder = encoder;
   pinMode(m_direction_pin, OUTPUT);
   pinMode(m_drive_pin, OUTPUT);
 }
@@ -77,6 +78,14 @@ void Motor::backward(char speed) {
   go(speed);
 }
 
+void Motor::drive(char speed) {
+  if(speed < 0) {
+    backward(speed * -1);
+  } else {
+    forward(speed);
+  }
+}
+
 /**
  * Sets the drive speed of the motor and sends values to motor
  * 
@@ -99,6 +108,12 @@ int Motor::get_drive_speed() {
  */
 int Motor::get_drive_percent() {
   return m_drive_percent;
+}
+
+int Motor::get_actual_speed() {
+  int position = m_encoder->getRawPosition();
+  m_encoder->zero();
+  return position;
 }
 
 /**

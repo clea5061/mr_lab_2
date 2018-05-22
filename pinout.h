@@ -8,11 +8,11 @@
  */
 #define START_BUTTON_PIN        11
 
-#define MOTOR_LEFT_DIR_PIN      2
-#define MOTOR_LEFT_DRIVE_PIN    3
-#define MOTOR_RIGHT_DIR_PIN     4
-#define MOTOR_RIGHT_DRIVE_PIN   5
+#define MOTOR_LEFT_DIR_PIN      4
+#define MOTOR_LEFT_DRIVE_PIN    5
+#define MOTOR_RIGHT_DIR_PIN     2
+#define MOTOR_RIGHT_DRIVE_PIN   3
 
 #define LIGHT_SENSOR_LEFT_PIN   3
 #define LIGHT_SENSOR_CENTER_PIN 2
-#define LIGHT_SENSOR_RIGHT_PIN  1
+#define LIGHT_SENSOR_RIGHT_PIN  1 
