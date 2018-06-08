@@ -1,3 +1,12 @@
+/**
+ * Author(s): Evan Cleary, Gabriel Bowerson, Nathan Sarrault
+ * Date: 6/7/2018
+ * Class: CE-442
+ * Assignment: Lab 5
+ *
+ * Rebuild of the robot class class with more fine grained drive control
+ * and modular piece. Also adds serial communication to the robot
+ */
 #include "robotv2.h"
 
 #define PID_P 5
@@ -35,11 +44,6 @@ float Robot2::convert_to_power(float val) {
 }
 
 void Robot2::update_drives() {
-//    Serial.print("Target Velocity: ");
-//    Serial.print("Y: ");
-//    Serial.print(mTargetVelocity.y);
-//    Serial.print("OMG: ");
-//    Serial.println(mTargetVelocity.omega);
     PidVector motor_states = poll_motor_velocities();
     float error = (motor_states.left-motor_states.right)/PID_P;
     float lSpeed = convert_to_power(mTargetVelocity.y);

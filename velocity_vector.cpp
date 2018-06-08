@@ -1,3 +1,13 @@
+/**
+ * Author(s): Evan Cleary, Gabriel Bowerson, Nathan Sarrault
+ * Date: 6/7/2018
+ * Class: CE-442
+ * Assignment: Lab 5
+ *
+ * Utility to convert offsets to relative linear velocities.
+ * This assumes a target target radius with the offset being the
+ * chord of a circle stretch across 30Degrees of the circle.
+ */
 #include "velocity_vector.h"
 #include "arduino.h"
 
