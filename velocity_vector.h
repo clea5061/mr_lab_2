@@ -4,6 +4,7 @@
 struct vel_vect {
     float x,y;
     float omega;
+    float vl,vr;
 };
 
 typedef struct vel_vect Velocity;

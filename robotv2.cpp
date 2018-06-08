@@ -35,24 +35,25 @@ float Robot2::convert_to_power(float val) {
 }
 
 void Robot2::update_drives() {
-    Serial.print("Target Velocity: ");
-    Serial.print("Y: ");
-    Serial.print(mTargetVelocity.y);
-    Serial.print("OMG: ");
-    Serial.println(mTargetVelocity.omega);
+//    Serial.print("Target Velocity: ");
+//    Serial.print("Y: ");
+//    Serial.print(mTargetVelocity.y);
+//    Serial.print("OMG: ");
+//    Serial.println(mTargetVelocity.omega);
     PidVector motor_states = poll_motor_velocities();
     float error = (motor_states.left-motor_states.right)/PID_P;
     float lSpeed = convert_to_power(mTargetVelocity.y);
-    if(mTargetVelocity.omega > 0) {
-        mRightMotor->drive(convert_to_power(mTargetVelocity.y-mTargetVelocity.omega));
-        mLeftMotor->drive(lSpeed);
-    } else if(mTargetVelocity.omega < 0) {
-        mLeftMotor->drive(convert_to_power(mTargetVelocity.y+mTargetVelocity.omega));
-        //Serial.println(convert_to_power(mTargetVelocity.y+mTargetVelocity.omega));
-        mRightMotor->drive(lSpeed);
-    } else {
+    if(mTargetVelocity.omega) {
+        mRightMotor->drive(convert_to_power(mTargetVelocity.vr));
+        mLeftMotor->drive(convert_to_power(mTargetVelocity.vl));
+    }else {
+      if(mTargetVelocity.y == 0){
+        mLeftMotor->drive(0);
+        mRightMotor->drive(0);
+      }else {
         mLeftMotor->drive(lSpeed);
         mRightMotor->drive(lSpeed+error);
+      }
     }
 }
 
@@ -73,15 +74,28 @@ void Robot2::drive(float speed) {
         } else {
             if (mLightSensor) {
             }
-            if (mVision) {
-                offset_to_vel(mVision->get_object_offset(), &mTargetVelocity);
+            if (mVision && mCycle % 1000 == 0) {
+              VisionOffset* offset = mVision->get_object_offset();
+              if(offset->x != 0){
+                offset_to_vel(offset, &mTargetVelocity);
+              }
+                if((offset->x == 0 && offset->y == 0 && offset->z == 0) || offset->z  <= 31) {
+                  mTargetVelocity.y = mTargetVelocity.omega = 0;
+                } else {
+                  mTargetVelocity.y = speed;
+                }
+//                Serial.print("Target Velocity: ");
+//                Serial.print("Y: ");
+//                Serial.print(mTargetVelocity.y);
+//                Serial.print("OMG: ");
+//                Serial.println(mTargetVelocity.omega);
                 // VisionOffset offset;
                 // offset.x = -1;
                 // offset.z = 0;
                 // offset_to_vel(&offset, &mTargetVelocity);
             }
             if(mCycle % 3 == 0) {
-                //update_drives();
+                update_drives();
             }
         }
         mCycle++;
