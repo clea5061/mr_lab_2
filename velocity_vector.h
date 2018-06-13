@@ -10,5 +10,5 @@ struct vel_vect {
 typedef struct vel_vect Velocity;
 
 void offset_to_vel(VisionOffset* off, Velocity* vel);
-
+void read_velocity(Velocity*);
 #endif

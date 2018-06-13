@@ -36,14 +36,14 @@ Robot2 second_robot(&motorLeft, &motorRight);
 void setup() {
   // put your setup code here, to run once:
   Wire.begin();
-  Serial.begin(9600);
-  Serial.println("Initializing");
   rightEncoder.init(MOTOR_393_TORQUE_ROTATIONS, MOTOR_393_TIME_DELTA);
   leftEncoder.init(MOTOR_393_TORQUE_ROTATIONS, MOTOR_393_TIME_DELTA);
   leftEncoder.setReversed(true);
   second_robot.enable_vision(&vision);
+  second_robot.enable_collision(&ultraSonic);
+  
+  Serial.begin(57600);
   //rightEncoder.setReversed(true);
-  Serial.println("Initialized");
 }
 
 int power = 0;
@@ -56,17 +56,17 @@ void loop() {
     enabled = digitalRead(START_BUTTON_PIN);
     return;
   }
-  if(!first) {
-    ls.calibrate();
-    first = 1;
-    delay(1000);
-    enabled = 0;
-    return;
-  }
+  // if(!first) {
+  //   ls.calibrate();
+  //   first = 1;
+  //   delay(1000);
+  //   enabled = 0;
+  //   return;
+  // }
   
   //collision = ls.check_collisions();
   //first_robot.forward_indeterminate(12.0f);
-  second_robot.drive(12);
+  second_robot.drive(8);
 
   //first_robot.line_follow(12.0f);
   enabled = 0;

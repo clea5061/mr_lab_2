@@ -27,6 +27,37 @@ void offset_to_vel(VisionOffset* off, Velocity* vel) {
     vel->vr = vel->y;
     vel->omega = 0;
   }
+}
 
-    
+void read_velocity(Velocity* vel) {
+  char mBuffer[24];
+  char active = 0, i = 0;
+  char * strtokIndx;
+  while(Serial.available() > 0) {
+        char c = Serial.read();
+        //Check for start character
+        if (c == '!' && !active) {
+          active = 1;
+          continue;
+        }
+        //check for end character
+        if (c == '\n') {
+            for(;i<24;i++)
+                mBuffer[i]='\0';
+            strtokIndx = strtok(mBuffer,",");
+            vel->y = atof(strtokIndx);
+            strtokIndx = strtok(NULL,",");
+            vel->vr = atof(strtokIndx);
+            strtokIndx = strtok(NULL,",");
+            vel->vl = atof(strtokIndx);
+            i=0;
+            active = 0;
+            continue;
+        }
+        if(active) {
+          //We overflowed for some reason, booo
+          if(i >= 24) break;
+          mBuffer[i++] = c;
+        }
+    }
 }

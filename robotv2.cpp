@@ -30,8 +30,10 @@ void Robot2::enable_vision(Vision* vision) {
 
 PidVector Robot2::poll_motor_velocities(){
     PidVector vector;
-    if (mLastMotorPoll == 0)
+    if (mLastMotorPoll == 0){
+        mLastMotorPoll = millis();
         return vector;
+    }
     
     vector.left = mLeftMotor->get_actual_speed();
     vector.right = mRightMotor->get_actual_speed();
@@ -45,26 +47,23 @@ float Robot2::convert_to_power(float val) {
 
 void Robot2::update_drives() {
     PidVector motor_states = poll_motor_velocities();
-    float error = (motor_states.left-motor_states.right)/PID_P;
-    float lSpeed = convert_to_power(mTargetVelocity.y);
-    if(mTargetVelocity.omega) {
-        mRightMotor->drive(convert_to_power(mTargetVelocity.vr));
+    float error = 0.0f;
+    if(mTargetVelocity.vl == 0.0f && mTargetVelocity.vr == 0.0f){
+        mRightMotor->stop();
+        mLeftMotor->stop();
+    } else {
+        if(mTargetVelocity.vl == mTargetVelocity.vr) {
+            error=(motor_states.left-motor_states.right)/PID_P;
+        }
+        mRightMotor->drive(convert_to_power(mTargetVelocity.vr+error));
         mLeftMotor->drive(convert_to_power(mTargetVelocity.vl));
-    }else {
-      if(mTargetVelocity.y == 0){
-        mLeftMotor->drive(0);
-        mRightMotor->drive(0);
-      }else {
-        mLeftMotor->drive(lSpeed);
-        mRightMotor->drive(lSpeed+error);
-      }
     }
 }
 
 bool Robot2::check_collisions() {
   int distance = mUltraSonic->ping_cm();
   if(distance== 0) return false;
-  return distance < 18;
+  return distance < 20;
 }
 
 void Robot2::drive(float speed) {
@@ -76,27 +75,8 @@ void Robot2::drive(float speed) {
             mTargetVelocity.omega=0;
             update_drives();
         } else {
-            if (mLightSensor) {
-            }
-            if (mVision && mCycle % 1000 == 0) {
-              VisionOffset* offset = mVision->get_object_offset();
-              if(offset->x != 0){
-                offset_to_vel(offset, &mTargetVelocity);
-              }
-                if((offset->x == 0 && offset->y == 0 && offset->z == 0) || offset->z  <= 31) {
-                  mTargetVelocity.y = mTargetVelocity.omega = 0;
-                } else {
-                  mTargetVelocity.y = speed;
-                }
-//                Serial.print("Target Velocity: ");
-//                Serial.print("Y: ");
-//                Serial.print(mTargetVelocity.y);
-//                Serial.print("OMG: ");
-//                Serial.println(mTargetVelocity.omega);
-                // VisionOffset offset;
-                // offset.x = -1;
-                // offset.z = 0;
-                // offset_to_vel(&offset, &mTargetVelocity);
+            if (mCycle % 50 == 0) {
+                read_velocity(&mTargetVelocity);
             }
             if(mCycle % 3 == 0) {
                 update_drives();
