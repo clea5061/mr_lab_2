@@ -72,6 +72,7 @@ void Robot2::drive(float speed) {
         if (mUltraSonic && check_collisions()) {
             mTargetVelocity.x=0;
             mTargetVelocity.y=0;
+            mTargetVelocity.vl = mTargetVelocity.vr = 0.0f;
             mTargetVelocity.omega=0;
             update_drives();
         } else {
